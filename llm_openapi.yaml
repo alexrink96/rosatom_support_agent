@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: LLM API
+  version: 1.0.0
+paths:
+  /classify:
+    post:
+      summary: Классификация текста с помощью LLM
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageIn'
+      responses:
+        '200':
+          description: Результат классификации
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    MessageIn:
+      type: object
+      properties:
+        prompt:
+          type: string
+          example: "Привет, как дела?"
+      required:
+        - prompt

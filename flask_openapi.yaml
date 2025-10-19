@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: Support Agent API
+  version: 1.0.0
+  description: API для чат-бота поддержки с операторским интерфейсом и LLM-классификацией сообщений
+
+servers:
+  - url: http://localhost:5000
+    description: Локальный сервер Flask
+
+paths:
+  /api/message:
+    post:
+      summary: Отправить сообщение пользователем
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Сообщение от пользователя
+              required:
+                - message
+      responses:
+        '200':
+          description: Ответ бота
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                  ticket_id:
+                    type: integer
+                    description: Присвоенный тикет, если ответ не найден
+        '400':
+          description: Пустое сообщение
+
+  /api/tickets:
+    get:
+      summary: Получить список открытых тикетов
+      responses:
+        '200':
+          description: Список тикетов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        user_msg:
+                          type: string
+                        category:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+
+  /api/tickets/{ticket_id}:
+    get:
+      summary: Получить информацию по конкретному тикету
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Данные тикета
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket:
+                    type: object
+        '404':
+          description: Тикет не найден
+
+  /api/tickets/{ticket_id}/answer:
+    post:
+      summary: Оператор отвечает на тикет
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: string
+              required:
+                - answer
+      responses:
+        '200':
+          description: Ответ принят
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  operator_answer:
+                    type: string
+
+  /api/faq:
+    post:
+      summary: Добавить запись в базу FAQ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                question:
+                  type: string
+                answer:
+                  type: string
+                keywords:
+                  type: string
+      responses:
+        '200':
+          description: Добавлено успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /api/add_to_history:
+    post:
+      summary: Добавить сообщение в сессию чата
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  description: 'user или support'
+                text:
+                  type: string
+                  description: Текст сообщения
+              required:
+                - role
+                - text
+      responses:
+        '200':
+          description: Успешно добавлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+        '400':
+          description: Ошибка (нет роли или текста)
